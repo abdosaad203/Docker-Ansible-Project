@@ -1,0 +1,48 @@
+services:
+  frontend:
+    image: abdosaad0/frontend-react:latest
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - frontend_backend
+  
+  backend:
+    image: abdosaad0/backend-dotnet-api:latest
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: appdb
+      DB_USER: root
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    depends_on:
+      - db
+    networks:
+      - frontend_backend
+      - backend_db
+    secrets:
+      - db_password 
+
+  db:
+    image: mysql:8.0
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_password
+      - MYSQL_DATABASE=appdb
+    secrets:
+      - db_password
+    networks:
+      - backend_db
+
+secrets:
+  db_password:
+    file: ./db_password.txt
+
+volumes:
+  db-data:
+
+networks:
+  frontend_backend:
+  backend_db:
